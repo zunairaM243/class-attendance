@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Class Attendance</title>
+
+    <!-- Makes the webpage installable as an app -->
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 20px;
+            color: #222;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 22px;
+            margin-top: 5px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .all-present {
+            background: #dff5e3;
+            color: #176b2c;
+        }
+
+        .all-absent {
+            background: #ffe1e1;
+            color: #b42318;
+        }
+
+        .finish {
+            background: #2563eb;
+            color: white;
+        }
+
+        .students {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .student {
+            display: grid;
+            grid-template-columns: 35px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .student:last-child {
+            border-bottom: none;
+        }
+
+        .name {
+            font-weight: bold;
+        }
+
+        .usn {
+            font-size: 12px;
+            color: #777;
+            margin-top: 3px;
+        }
+
+        .status {
+            border: 1px solid;
+            background: white;
+        }
+
+        .present {
+            background: #e8f5e9;
+            color: #176b2c;
+            border-color: #a5d6a7;
+        }
+
+        .absent {
+            background: #ffebee;
+            color: #b42318;
+            border-color: #ef9a9a;
+        }
+
+        #result {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .student {
+                grid-template-columns: 25px 1fr auto;
+                gap: 8px;
+            }
+
+            .student button {
+                padding: 9px 10px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <h1>📋 Class Attendance</h1>
+
+
+    <div class="top">
+
+        <div>
+            <strong>Attendance Date</strong>
+        </div>
+
+        <input type="date" id="date">
+
+    </div>
+
+
+    <div class="stats">
+
+        <div class="stat">
+
+            Students
+
+            <strong id="total">50</strong>
+
+        </div>
+
+
+        <div class="stat">
+
+            Present
+
+            <strong id="present">50</strong>
+
+        </div>
+
+
+        <div class="stat">
+
+            Absent
+
+            <strong id="absent">0</strong>
+
+        </div>
+
+
+        <div class="stat">
+
+            Attendance
+
+            <strong id="percentage">100%</strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="buttons">
+
+        <button
+            class="all-present"
+            onclick="markAllPresent()">
+
+            Mark All Present
+
+        </button>
+
+
+        <button
+            class="all-absent"
+            onclick="markAllAbsent()">
+
+            Mark All Absent
+
+        </button>
+
+
+        <button
+            class="finish"
+            onclick="finishAttendance()">
+
+            Finish Attendance
+
+        </button>
+
+    </div>
+
+
+    <div
+        class="students"
+        id="students">
+    </div>
+
+
+    <div
+        id="result"
+        class="hidden">
+
+        <h2>Absent Students</h2>
+
+        <p id="summary"></p>
+
+        <div id="absentList"></div>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+/* =========================================
+   STUDENT LIST
+========================================= */
+
+const students = [
+
+    ["Arbin Faseeha", "U19ON24S0019"],
+
+    ["Arbiya begum", "U19ON24S0020"],
+
+    ["MOHAMMED SHIFAD", "U19ON24S0045"],
+
+    ["RAYAAN HUSSAIN", "U19ON24S0066"],
+
+    ["ABDUR RAHIM BAIG", "U19ON24S0076"],
+
+    ["Ayesha Siddiqa", "U19ON24S0078"],
+
+    ["M ABDUL MUIZ", "U19ON24S0081"],
+
+    ["Mohammed kaif", "U19ON24S0082"],
+
+    ["Reehan ahmed", "U19ON24S0084"],
+
+    ["Syed arfath", "U19ON24S0086"],
+
+    ["Syed owaiz pasha", "U19ON24S0089"],
+
+    ["Madeeha N", "U19ON24S0090"],
+
+    ["MAMATHA B", "U19ON24S0091"],
+
+    ["Faiz khan", "U19ON24S0093"],
+
+    ["MOHAMMED NAWAZ", "U19ON24S0094"],
+
+    ["Mohmmed Naaz.C", "U19ON24S0095"],
+
+    ["Mohammed hateem", "U19ON24S0096"],
+
+    ["Mahera", "U19ON24S0097"],
+
+    ["Mohammed Danish S", "U19ON24S0098"],
+
+    ["M.Ghouseuddin Ghouseuddin", "U19ON24S0099"],
+
+    ["K.S Zain . Ali", "U19ON24S0101"],
+
+    ["Syed Mohammed Anas", "U19ON24S0106"],
+
+    ["Tayeeb ur Rahman", "U19ON24S0107"],
+
+    ["Ayman khan", "U19ON24S0109"],
+
+    ["Jasiya Firdouse GM", "U19ON24S0110"],
+
+    ["Imran Ahmed", "U19ON24S0112"],
+
+    ["Abubakker siddiq", "U19ON24S0113"],
+
+    ["Faiza Sadak", "U19ON24S0114"],
+
+    ["Syed Maviya", "U19ON24S0115"],
+
+    ["Priyanshu Priyanshu", "U19ON24S0116"],
+
+    ["Zoubia Ifrah", "U19ON24S0117"],
+
+    ["MOHAMMED ZIAULLA", "U19ON24S0122"],
+
+    ["Ayesha Muskan", "U19ON24S0123"],
+
+    ["Mohamed Mohideen A", "U19ON24S0126"],
+
+    ["Khan mohd Hassan mohd saeed", "U19ON24S0129"],
+
+    ["SYED ZAID", "U19ON24S0131"],
+
+    ["Mohammed shoaib momin", "U19ON24S0132"],
+
+    ["Muhammad Irfan", "U19ON24S0134"],
+
+    ["MOHAMMED AFZAL A", "U19ON24S0135"],
+
+    ["Sudesh R", "U19ON24S0137"],
+
+    ["P MOURYA", "U19ON24S0138"],
+
+    ["Mohammed Faizan", "U19ON24S0141"],
+
+    ["Shifa Sultana", "U19ON24S0142"],
+
+    ["Syed Daniyal Ahmed", "U19ON24S0145"],
+
+    ["Syed Touqir A", "U19ON24S0147"],
+
+    ["P Muhammad Zaid Khan", "U19ON24S0148"],
+
+    ["Syed Arham", "U19ON24S0149"],
+
+    ["Zaid khan", "U19ON24S0151"],
+
+    ["Mohammed Fardeen", "U19ON24S0241"],
+
+    ["NASIR PASHA", "U19ON24S0263"]
+
+];
+
+
+
+/* =========================================
+   ATTENDANCE
+========================================= */
+
+let attendance = students.map(() => true);
+
+
+
+/* =========================================
+   TODAY'S DATE
+========================================= */
+
+const today = new Date();
+
+const localDate =
+    new Date(
+        today.getTime()
+        -
+        today.getTimezoneOffset() * 60000
+    )
+    .toISOString()
+    .split("T")[0];
+
+document.getElementById("date").value = localDate;
+
+
+
+/* =========================================
+   DISPLAY STUDENTS
+========================================= */
+
+function displayStudents() {
+
+    const list =
+        document.getElementById("students");
+
+    list.innerHTML = "";
+
+
+    students.forEach((student, index) => {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "student";
+
+
+        div.innerHTML = `
+
+            <div>
+                ${index + 1}
+            </div>
+
+            <div>
+
+                <div class="name">
+                    ${student[0]}
+                </div>
+
+                <div class="usn">
+                    ${student[1]}
+                </div>
+
+            </div>
+
+            <button
+                class="status ${
+                    attendance[index]
+                    ? "present"
+                    : "absent"
+                }"
+                onclick="toggleAttendance(${index})">
+
+                ${
+                    attendance[index]
+                    ? "Present"
+                    : "Absent"
+                }
+
+            </button>
+
+        `;
+
+
+        list.appendChild(div);
+
+    });
+
+
+    updateStats();
+
+}
+
+
+
+/* =========================================
+   TOGGLE ATTENDANCE
+========================================= */
+
+function toggleAttendance(index) {
+
+    attendance[index] =
+        !attendance[index];
+
+    displayStudents();
+
+}
+
+
+
+/* =========================================
+   MARK ALL PRESENT
+========================================= */
+
+function markAllPresent() {
+
+    attendance =
+        students.map(() => true);
+
+    displayStudents();
+
+}
+
+
+
+/* =========================================
+   MARK ALL ABSENT
+========================================= */
+
+function markAllAbsent() {
+
+    attendance =
+        students.map(() => false);
+
+    displayStudents();
+
+}
+
+
+
+/* =========================================
+   UPDATE STATISTICS
+========================================= */
+
+function updateStats() {
+
+    const presentCount =
+        attendance.filter(
+            x => x === true
+        ).length;
+
+
+    const absentCount =
+        students.length -
+        presentCount;
+
+
+    const percentage =
+        Math.round(
+            (presentCount /
+            students.length) *
+            100
+        );
+
+
+    document.getElementById("total")
+        .textContent =
+        students.length;
+
+
+    document.getElementById("present")
+        .textContent =
+        presentCount;
+
+
+    document.getElementById("absent")
+        .textContent =
+        absentCount;
+
+
+    document.getElementById("percentage")
+        .textContent =
+        percentage + "%";
+
+}
+
+
+
+/* =========================================
+   FINISH ATTENDANCE
+========================================= */
+
+function finishAttendance() {
+
+    const absentStudents =
+        students.filter(
+            (student, index) =>
+                attendance[index] === false
+        );
+
+
+    document
+        .getElementById("result")
+        .classList
+        .remove("hidden");
+
+
+    document
+        .getElementById("summary")
+        .textContent =
+
+        "Date: " +
+        document.getElementById("date").value +
+        " | " +
+        absentStudents.length +
+        " student(s) absent.";
+
+
+    const list =
+        document.getElementById("absentList");
+
+
+    if (absentStudents.length === 0) {
+
+        list.innerHTML =
+            "<h3>🎉 No absentees!</h3>";
+
+        return;
+
+    }
+
+
+    list.innerHTML = "";
+
+
+    absentStudents.forEach(
+        (student, index) => {
+
+            const div =
+                document.createElement("div");
+
+
+            div.style.padding =
+                "10px 0";
+
+
+            div.style.borderBottom =
+                "1px solid #eee";
+
+
+            div.innerHTML = `
+
+                <strong>
+                    ${index + 1}.
+                    ${student[0]}
+                </strong>
+
+                <br>
+
+                <small>
+                    ${student[1]}
+                </small>
+
+            `;
+
+
+            list.appendChild(div);
+
+        }
+    );
+
+}
+
+
+
+/* =========================================
+   START APP
+========================================= */
+
+displayStudents();
+
+
+
+/* =========================================
+   OFFLINE SERVICE WORKER
+========================================= */
+
+if ("serviceWorker" in navigator) {
+
+    window.addEventListener(
+        "load",
+        function () {
+
+            navigator.serviceWorker
+                .register("sw.js")
+                .then(
+                    function () {
+
+                        console.log(
+                            "Offline mode enabled."
+                        );
+
+                    }
+                )
+                .catch(
+                    function (error) {
+
+                        console.log(
+                            "Offline mode setup failed:",
+                            error
+                        );
+
+                    }
+                );
+
+        }
+    );
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
